@@ -1,0 +1,33 @@
+#!/usr/bin/env php
+<?php
+
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $autoload) {
+    if (file_exists($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+use McArrowsmithPackages\SmtpDebug\SmtpDebugger;
+
+$opts = getopt('', ['host:', 'port:', 'username:', 'password:', 'from:', 'to:', 'encryption:', 'level:']);
+
+foreach (['host', 'from', 'to'] as $required) {
+    if (empty($opts[$required])) {
+        fwrite(STDERR, "Usage: smtp-debug --host=smtp.example.com --port=587 --username=user --password=secret --from=me@example.com --to=you@example.com [--encryption=tls|ssl|none] [--level=3]\n");
+        exit(1);
+    }
+}
+
+$ok = SmtpDebugger::send(
+    host: $opts['host'],
+    port: (int) ($opts['port'] ?? 587),
+    username: $opts['username'] ?? '',
+    password: $opts['password'] ?? '',
+    from: $opts['from'],
+    to: $opts['to'],
+    encryption: $opts['encryption'] ?? 'tls',
+    debugLevel: (int) ($opts['level'] ?? 3),
+);
+
+exit($ok ? 0 : 1);
